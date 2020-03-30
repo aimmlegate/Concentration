@@ -13,33 +13,37 @@ class Concentration {
     
     var cards = [Card]()
     
+    var flipCount: Int
+    
+    var score: Int
+    
+    var seenCards: Set<Int>
+    
     var indexOfOneAndOnlyFaceUpCard: Int?
-//
-//    func chooseCard(at index: Int) {
-//        if !cards[index].isMatched {
-//            if let matchIndex = indexOfOneAndOnlyFaceUpCard, matchIndex != index {
-//                if cards[matchIndex].id == cards[index].id {
-//                    cards[matchIndex].isMatched = true
-//                    cards[index].isMatched = true
-//                }
-//                cards[index].isFaceUp = true
-//                indexOfOneAndOnlyFaceUpCard = nil
-//            } else {
-//                for flipDownind in cards.indices {
-//                    cards[flipDownind].isFaceUp = false
-//                }
-//                cards[index].isFaceUp =  true
-//                indexOfOneAndOnlyFaceUpCard = index
-//            }
-//        }
-//    }
-//
+
     func chooseCard(at index: Int) {
         let card = cards[index]
         
         switch card.cardState {
         case .Close:
+            flipCount += 1
+            checkAndCalcScore(for: index)
+            if card.id == indexOfOneAndOnlyFaceUpCard {
+                cards = cards.map({ (c: Card) -> Card in
+                    if (c.id == indexOfOneAndOnlyFaceUpCard) {
+                        var n = c
+                        n.cardState = .Matched
+                        return n
+                    }
+                    return c
+                })
+                indexOfOneAndOnlyFaceUpCard = nil
+                addScore()
+                return
+            }
             indexOfOneAndOnlyFaceUpCard = card.id
+            
+            
             
             cards = cards.map({ (c: Card) -> Card in
                 switch c.cardState {
@@ -51,27 +55,39 @@ class Concentration {
                     return c
                 }
             })
-        
-            for flipDownind in cards.indices {
-                cards[flipDownind].cardState = .Close
-            }
             
             cards[index].cardState = .Open
-            
-            
+        
         default:
             return
         }
         
     }
     
+    func checkAndCalcScore(for index: Int) {
+        if (seenCards.contains(index)) {
+            score -= 1
+        }
+        seenCards.insert(index)
+    }
+    
+    
+    func addScore() {
+        score += 2
+    }
+    
     
     init(numberOfPairsOfCard: Int) {
-        for _ in 0...numberOfPairsOfCard {
+        for _ in 1...numberOfPairsOfCard {
             let card = Card()
             cards += [card, card]
         }
-        // TODO: Shuffle card
+        print(cards.map({(c: Card) -> Int in c.id}))
+        cards.shuffle()
+        print(cards.map({(c: Card) -> Int in c.id}))
+        flipCount = 0
+        score = 0
+        seenCards = []
     }
     
 }
